@@ -1,0 +1,702 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Yêu em</title>
+  <meta name="description" content="Một web nhỏ dành tặng em — thư và ảnh." />
+
+  <style>
+    :root{
+      --bg0:#070914;
+      --bg1:#0b1022;
+      --card: rgba(18, 22, 44, .78);
+      --card2: rgba(255,255,255,.06);
+      --line: rgba(255,255,255,.14);
+      --text: rgba(245,247,255,.92);
+      --muted: rgba(245,247,255,.72);
+      --muted2: rgba(245,247,255,.55);
+      --accent: #ffdf9e;
+      --accent2:#a6c8ff;
+      --shadow: 0 24px 80px rgba(0,0,0,.45);
+      --radius: 22px;
+      --radius2: 16px;
+      --max: 1040px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color: var(--text);
+      background: radial-gradient(1200px 700px at 20% 15%, rgba(120,170,255,.16), transparent 60%),
+                  radial-gradient(900px 600px at 80% 30%, rgba(255,223,158,.13), transparent 60%),
+                  linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
+    }
+
+    /* Subtle starfield (light) */
+    .stars{
+      position:fixed; inset:0;
+      pointer-events:none;
+      opacity:.40;
+      background-image:
+        radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,.55) 0, transparent 55%),
+        radial-gradient(1px 1px at 70% 30%, rgba(255,255,255,.40) 0, transparent 55%),
+        radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,.45) 0, transparent 55%),
+        radial-gradient(1px 1px at 85% 75%, rgba(255,255,255,.35) 0, transparent 55%),
+        radial-gradient(1px 1px at 25% 55%, rgba(255,255,255,.30) 0, transparent 55%);
+      filter: blur(.2px);
+    }
+    .vignette{
+      position:fixed; inset:0; pointer-events:none;
+      background: radial-gradient(1200px 900px at 50% 45%, transparent 35%, rgba(0,0,0,.38) 90%);
+      opacity:.60;
+    }
+
+    /* Navbar */
+    .nav{
+      position:fixed;
+      top:14px; left:50%; transform:translateX(-50%);
+      width:min(var(--max), calc(100% - 24px));
+      z-index:50;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 12px;
+      border-radius: 16px;
+      background: rgba(10, 12, 25, .60);
+      border: 1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      min-width: 170px;
+    }
+    .logo{
+      width:34px; height:34px; border-radius:12px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,223,158,.9), rgba(120,170,255,.25));
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .brandTitle{
+      display:flex; flex-direction:column; line-height:1.1;
+    }
+    .brandTitle b{ font-size:14px; letter-spacing:.2px; }
+    .brandTitle span{ font-size:12px; color: var(--muted2); }
+
+    .navLinks{
+      display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
+    }
+    .navLinks a{
+      text-decoration:none;
+      color: var(--muted);
+      font-size:13px;
+      padding:8px 10px;
+      border-radius: 12px;
+      border:1px solid transparent;
+      transition: .18s ease;
+    }
+    .navLinks a:hover{
+      color: var(--text);
+      border-color: rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+    }
+    .navLinks a.active{
+      color: #111827;
+      background: linear-gradient(135deg, rgba(255,223,158,.95), rgba(166,200,255,.95));
+      border-color: rgba(255,255,255,.22);
+    }
+
+    .navRight{
+      display:flex; gap:10px; align-items:center; justify-content:flex-end;
+      min-width: 170px;
+    }
+    .btn{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding:8px 10px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-size: 13px;
+      transition: .18s ease;
+      user-select:none;
+    }
+    .btn:hover{ background: rgba(255,255,255,.09); }
+    .btnPrimary{
+      border-color: rgba(255,223,158,.28);
+      background: rgba(255,223,158,.10);
+    }
+    .btnPrimary:hover{ background: rgba(255,223,158,.14); }
+
+    /* Layout */
+    main{
+      width:min(var(--max), calc(100% - 24px));
+      margin: 0 auto;
+      padding: 96px 0 56px;
+    }
+
+    .hero{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 18px;
+      align-items:stretch;
+      margin-top: 10px;
+    }
+    @media (max-width: 980px){
+      .hero{ grid-template-columns: 1fr; }
+      .navRight, .brand{ min-width:auto; }
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      overflow:hidden;
+    }
+
+    .cardHeader{
+      padding: 18px 18px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 14px;
+    }
+    .cardHeader h1{
+      margin:0;
+      font-size: 22px;
+      letter-spacing: .2px;
+    }
+    .cardHeader p{
+      margin:8px 0 0;
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height: 1.55;
+      max-width: 56ch;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+      color: var(--muted);
+      font-size: 12px;
+      white-space:nowrap;
+    }
+    .dot{
+      width:8px; height:8px; border-radius:999px;
+      background: rgba(255,223,158,.95);
+      box-shadow: 0 0 18px rgba(255,223,158,.35);
+    }
+
+    .cardBody{ padding: 18px; }
+
+    /* Sections */
+    section{ scroll-margin-top: 100px; }
+    .sectionTitle{
+      display:flex; align-items:baseline; gap:10px;
+      margin: 26px 0 12px;
+    }
+    .sectionTitle h2{
+      margin:0;
+      font-size: 16px;
+      letter-spacing: .2px;
+    }
+    .sectionTitle span{
+      color: var(--muted2);
+      font-size: 12.5px;
+    }
+
+    /* Letter */
+    .letterWrap{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 16px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .letterWrap{ grid-template-columns: 1fr; }
+    }
+
+    .letter{
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius2);
+      padding: 16px;
+      line-height: 1.75;
+      font-size: 14.5px;
+      color: var(--text);
+    }
+    .letter b{ color: rgba(255,223,158,.95); }
+    .letter .sig{
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .noteBox{
+      background: rgba(255,223,158,.08);
+      border: 1px solid rgba(255,223,158,.18);
+      border-radius: var(--radius2);
+      padding: 14px;
+      color: var(--muted);
+      font-size: 13.2px;
+      line-height: 1.6;
+    }
+
+    /* Gallery */
+    .gallery{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+    }
+    .shot{
+      grid-column: span 4;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 18px;
+      overflow:hidden;
+      position:relative;
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+      cursor:pointer;
+      transition: transform .2s ease, border-color .2s ease;
+    }
+    .shot:hover{
+      transform: translateY(-2px);
+      border-color: rgba(255,223,158,.22);
+    }
+    @media (max-width: 980px){ .shot{ grid-column: span 6; } }
+    @media (max-width: 560px){ .shot{ grid-column: span 12; } }
+
+    .shot img{
+      width:100%;
+      height: 300px;
+      object-fit: cover;
+      display:block;
+      filter: brightness(1.06) contrast(1.05);
+    }
+    .shotLabel{
+      position:absolute;
+      left:12px; bottom:12px;
+      padding:8px 10px;
+      border-radius: 999px;
+      background: rgba(10,12,25,.55);
+      border: 1px solid rgba(255,255,255,.14);
+      backdrop-filter: blur(10px);
+      font-size: 12.5px;
+      color: rgba(245,247,255,.88);
+    }
+
+    /* Lightbox */
+    .lightbox{
+      position:fixed; inset:0;
+      display:none;
+      align-items:center; justify-content:center;
+      padding: 18px;
+      background: rgba(0,0,0,.65);
+      z-index: 80;
+    }
+    .lightbox.on{ display:flex; }
+    .lightboxCard{
+      width:min(920px, 100%);
+      border-radius: 22px;
+      overflow:hidden;
+      background: rgba(14,16,30,.92);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 30px 120px rgba(0,0,0,.55);
+      position:relative;
+    }
+    .lightboxCard img{
+      width:100%;
+      height: min(78vh, 720px);
+      object-fit: contain;
+      background: rgba(0,0,0,.25);
+      display:block;
+    }
+    .xbtn{
+      position:absolute; top:12px; right:12px;
+      width:38px; height:38px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      cursor:pointer;
+    }
+
+    /* Story */
+    .storyGrid{
+      display:grid;
+      grid-template-columns: .95fr 1.05fr;
+      gap: 16px;
+      align-items:stretch;
+    }
+    @media (max-width: 980px){ .storyGrid{ grid-template-columns: 1fr; } }
+
+    .storyPanel{
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius2);
+      padding: 14px;
+    }
+    .storyPanel h3{
+      margin: 2px 0 8px;
+      font-size: 14px;
+      color: rgba(255,223,158,.92);
+    }
+    .storyText{
+      color: var(--muted);
+      font-size: 13.6px;
+      line-height: 1.7;
+      margin:0;
+      min-height: 140px;
+    }
+
+    .controls{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 12px;
+    }
+    .small{
+      font-size: 12px;
+      color: var(--muted2);
+      margin-top: 10px;
+    }
+
+    /* Footer */
+    footer{
+      margin-top: 30px;
+      padding: 16px 0 0;
+      color: var(--muted2);
+      font-size: 12.5px;
+      text-align:center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="stars"></div>
+  <div class="vignette"></div>
+
+  <!-- NAV -->
+  <header class="nav" role="navigation" aria-label="Thanh điều hướng">
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div class="brandTitle">
+        <b>Yêu em</b>
+        <span>một góc nhỏ dành cho em</span>
+      </div>
+    </div>
+
+    <nav class="navLinks" id="navLinks">
+      <a href="#home" class="active">Trang chủ</a>
+      <a href="#letter">Thư</a>
+      <a href="#photos">Ảnh</a>
+      <a href="#story">Câu chuyện</a>
+    </nav>
+
+    <div class="navRight">
+      <button class="btn btnPrimary" id="goLetter">Mở thư</button>
+      <button class="btn" id="goPhotos">Xem ảnh</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- HOME -->
+    <section id="home" class="hero">
+      <div class="card">
+        <div class="cardHeader">
+          <div>
+            <h1>Chào em.</h1>
+            <p>
+              Đây là một web nhỏ anh làm để giữ lại vài điều quan trọng: một lá thư,
+              vài tấm ảnh, và một câu chuyện ngắn — để em xem lúc nào cũng được.
+            </p>
+          </div>
+          <div class="pill"><span class="dot"></span> Em là điều dịu dàng nhất</div>
+        </div>
+
+        <div class="cardBody">
+          <div class="sectionTitle">
+            <h2>Điều khiển</h2>
+            <span>Không có hẹn giờ. Em tự bấm theo ý em.</span>
+          </div>
+
+          <div class="controls">
+            <button class="btn btnPrimary" onclick="scrollToId('letter')">Đi tới Thư</button>
+            <button class="btn" onclick="scrollToId('photos')">Đi tới Ảnh</button>
+            <button class="btn" onclick="scrollToId('story')">Đi tới Câu chuyện</button>
+          </div>
+
+          <p class="small">
+            Gợi ý: Nhấn ảnh để phóng to. Câu chuyện có nút “Tiếp / Lùi”.
+          </p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cardHeader">
+          <div>
+            <h1>Một lời hứa</h1>
+            <p>
+              Anh muốn em luôn cảm thấy được trân trọng, được yên tâm,
+              và được yêu theo cách nhẹ nhàng nhất.
+            </p>
+          </div>
+          <div class="pill"><span class="dot" style="background:rgba(166,200,255,.95)"></span> Ở đây luôn có anh</div>
+        </div>
+        <div class="cardBody">
+          <div class="noteBox">
+            Nếu có ngày nào em mệt, em chỉ cần mở trang này lên.
+            Không cần nói gì nhiều — chỉ cần nhớ rằng em không hề một mình.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LETTER -->
+    <section id="letter">
+      <div class="sectionTitle">
+        <h2>Thư</h2>
+        <span>Tách riêng để đọc dễ hơn</span>
+      </div>
+
+      <div class="card">
+        <div class="cardBody">
+          <div class="letterWrap">
+            <div class="letter" id="letterText">
+              <p>
+                Em à, <br/><br/>
+                Cảm ơn em vì đã đến bên anh, theo cách rất nhẹ nhưng lại làm mọi thứ trong anh đổi khác.
+                Có những ngày anh vụng về, có lúc anh chưa kịp hiểu hết cảm xúc của em,
+                nhưng anh muốn em biết một điều rất rõ: <b>anh trân trọng em</b> và anh thật lòng muốn đi cùng em lâu dài.
+              </p>
+
+              <p>
+                Anh hứa sẽ cố gắng để không bao giờ làm em phải buồn hay phiền lòng vì anh.
+                Không phải vì anh nghĩ mình hoàn hảo, mà vì anh muốn mỗi lần em nghĩ về anh,
+                em sẽ thấy <b>yên tâm</b>, thấy được lắng nghe, thấy được yêu thương đúng nghĩa.
+              </p>
+
+              <p>
+                Nếu có lúc em thấy thế giới hơi nặng, em có thể dựa vào anh một chút.
+                Anh không hứa sẽ làm được mọi thứ, nhưng anh hứa sẽ <b>ở đây</b> —
+                bình tĩnh, kiên nhẫn, và chọn em mỗi ngày.
+              </p>
+
+              <p class="sig">
+                — Yêu em rất nhiều. <br/>
+                (Từ anh)
+              </p>
+            </div>
+
+            <div class="noteBox">
+              <b>Mẹo để web “đúng kiểu tặng”</b><br/>
+              - Thư ngắn, rõ, chân thành (đọc 20–40 giây).<br/>
+              - Ảnh để riêng, dễ xem, dễ phóng to.<br/>
+              - Điều hướng ở trên giúp em ấy không bị rối.<br/><br/>
+              Nếu bạn muốn mình chỉnh thư “ngọt hơn / trưởng thành hơn / ít sến hơn”, nói mình phong cách bạn muốn.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PHOTOS -->
+    <section id="photos">
+      <div class="sectionTitle">
+        <h2>Ảnh</h2>
+        <span>Nhấn để phóng to</span>
+      </div>
+
+      <div class="card">
+        <div class="cardBody">
+          <div class="gallery">
+            <div class="shot" data-src="coay_1.jpg" data-label="Ảnh 1">
+              <img src="coay_1.jpg" alt="Ảnh 1" loading="lazy">
+              <div class="shotLabel">Ảnh 1</div>
+            </div>
+            <div class="shot" data-src="coay_2.jpg" data-label="Ảnh 2">
+              <img src="coay_2.jpg" alt="Ảnh 2" loading="lazy">
+              <div class="shotLabel">Ảnh 2</div>
+            </div>
+            <div class="shot" data-src="coay_3.jpg" data-label="Ảnh 3">
+              <img src="coay_3.jpg" alt="Ảnh 3" loading="lazy">
+              <div class="shotLabel">Ảnh 3</div>
+            </div>
+          </div>
+          <p class="small">
+            Nếu ảnh không hiện: kiểm tra đúng tên file (coay_1.jpg, coay_2.jpg, coay_3.jpg) và nằm cùng thư mục với index.html.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- STORY -->
+    <section id="story">
+      <div class="sectionTitle">
+        <h2>Câu chuyện</h2>
+        <span>Người xem tự bấm điều khiển</span>
+      </div>
+
+      <div class="card">
+        <div class="cardBody">
+          <div class="storyGrid">
+            <div class="storyPanel">
+              <h3>Điều khiển</h3>
+              <div class="controls">
+                <button class="btn btnPrimary" id="storyStart">Bắt đầu</button>
+                <button class="btn" id="storyPrev">Lùi</button>
+                <button class="btn" id="storyNext">Tiếp</button>
+                <button class="btn" id="storyReset">Reset</button>
+              </div>
+              <p class="small" id="storyMeta">Bước: 0 / 6</p>
+              <p class="small">
+                Tất cả đều manual, không có countdown.
+              </p>
+            </div>
+
+            <div class="storyPanel">
+              <h3 id="storyTitle">Chưa bắt đầu</h3>
+              <p class="storyText" id="storyText">
+                Nhấn “Bắt đầu” để xem câu chuyện theo các bước.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Làm bằng sự chân thành. Nếu muốn thêm nhạc nền, mình sẽ hướng dẫn cách nhúng mà vẫn chạy tốt trên GitHub Pages.
+    </footer>
+  </main>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <div class="lightboxCard">
+      <button class="xbtn" id="closeLightbox" aria-label="Đóng">✕</button>
+      <img id="lightboxImg" alt="Ảnh phóng to" />
+    </div>
+  </div>
+
+  <script>
+    /* ---------- Smooth scroll helper ---------- */
+    function scrollToId(id){
+      const el = document.getElementById(id);
+      if(!el) return;
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    document.getElementById("goLetter").addEventListener("click", ()=>scrollToId("letter"));
+    document.getElementById("goPhotos").addEventListener("click", ()=>scrollToId("photos"));
+
+    /* ---------- Active nav highlight ---------- */
+    const navLinks = Array.from(document.querySelectorAll("#navLinks a"));
+    const sections = navLinks.map(a => document.querySelector(a.getAttribute("href"))).filter(Boolean);
+
+    const io = new IntersectionObserver((entries)=>{
+      const visible = entries
+        .filter(e=>e.isIntersecting)
+        .sort((a,b)=>b.intersectionRatio - a.intersectionRatio)[0];
+      if(!visible) return;
+
+      const id = "#" + visible.target.id;
+      navLinks.forEach(a => a.classList.toggle("active", a.getAttribute("href") === id));
+    }, { root: null, threshold: [0.25, 0.5, 0.75] });
+
+    sections.forEach(s => io.observe(s));
+
+    /* ---------- Gallery lightbox ---------- */
+    const lightbox = document.getElementById("lightbox");
+    const lightboxImg = document.getElementById("lightboxImg");
+    const closeLightbox = document.getElementById("closeLightbox");
+
+    function openLightbox(src){
+      lightboxImg.src = src;
+      lightbox.classList.add("on");
+      lightbox.setAttribute("aria-hidden","false");
+    }
+    function hideLightbox(){
+      lightbox.classList.remove("on");
+      lightbox.setAttribute("aria-hidden","true");
+      lightboxImg.src = "";
+    }
+
+    document.querySelectorAll(".shot").forEach(card=>{
+      card.addEventListener("click", ()=>{
+        const src = card.getAttribute("data-src");
+        openLightbox(src);
+      });
+    });
+
+    closeLightbox.addEventListener("click", hideLightbox);
+    lightbox.addEventListener("click", (e)=>{ if(e.target === lightbox) hideLightbox(); });
+    document.addEventListener("keydown", (e)=>{ if(e.key === "Escape") hideLightbox(); });
+
+    /* ---------- Story (manual) ---------- */
+    const story = [
+      { title: "Start", text: "Mọi thứ bắt đầu từ một khoảng trống… nhưng cũng là nơi để điều tốt đẹp xuất hiện." },
+      { title: "Sau 5 giây", text: "Ngôi nhà hiện ra bên ngoài, tuyết rơi nhẹ. Đèn vàng ấm áp như đang chờ ai đó quay về." },
+      { title: "Bên trong", text: "Bên trong là không gian trang trí phong cách Giáng Sinh, ấm và bình yên." },
+      { title: "Ông già Noel", text: "Ông già Noel từ bên ngoài đi vào qua ống khói, để lại món quà và vài lời chúc." },
+      { title: "Biến mất", text: "Ông già Noel biến mất, chỉ còn lại cảm giác dễ thương và một điều gì đó rất thật." },
+      { title: "Quà & Thư", text: "Món quà và bức thư xuất hiện — và người xem tự mở ra, theo nhịp riêng của mình." }
+    ];
+
+    let step = 0;
+    const storyTitle = document.getElementById("storyTitle");
+    const storyText  = document.getElementById("storyText");
+    const storyMeta  = document.getElementById("storyMeta");
+    const btnStart = document.getElementById("storyStart");
+    const btnPrev  = document.getElementById("storyPrev");
+    const btnNext  = document.getElementById("storyNext");
+    const btnReset = document.getElementById("storyReset");
+
+    function renderStory(){
+      if(step <= 0){
+        storyTitle.textContent = "Chưa bắt đầu";
+        storyText.textContent = "Nhấn “Bắt đầu” để xem câu chuyện theo các bước.";
+        storyMeta.textContent = `Bước: 0 / ${story.length}`;
+        btnPrev.disabled = true;
+        btnNext.disabled = true;
+        return;
+      }
+      const idx = step - 1;
+      storyTitle.textContent = story[idx].title;
+      storyText.textContent  = story[idx].text;
+      storyMeta.textContent  = `Bước: ${step} / ${story.length}`;
+      btnPrev.disabled = step <= 1;
+      btnNext.disabled = step >= story.length;
+    }
+
+    btnStart.addEventListener("click", ()=>{
+      step = 1;
+      renderStory();
+      scrollToId("story");
+    });
+    btnPrev.addEventListener("click", ()=>{
+      step = Math.max(1, step - 1);
+      renderStory();
+    });
+    btnNext.addEventListener("click", ()=>{
+      step = Math.min(story.length, step + 1);
+      renderStory();
+    });
+    btnReset.addEventListener("click", ()=>{
+      step = 0;
+      renderStory();
+    });
+
+    renderStory();
+  </script>
+</body>
+</html>
